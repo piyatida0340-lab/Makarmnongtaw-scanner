@@ -138,9 +138,9 @@ function scan(){
 
   let cls,label;
   if(score>=3){cls="darkgreen";label="🟢 ≥ 3.00 = ทองคำ / เข้าด่วนเลยเพ่"}
-  else if(score>=2){cls="lightgreen";label="🟩 2.00–2.99 = ไฟเขียวอ่อน / เล่นได้ ตลาดเปิด"}
-  else if(score>=1.01){cls="orange";label="🟠 1.01–1.99 = ไฟส้ม / ลองเบาๆ ก่อน"}
-  else{cls="red";label="🔴 < 1.00 = ไฟแดง / อย่าเลย เสียเวลา"}
+  else if(score>=2.5){cls="lightgreen";label="🟩 2.50–2.99 = ไฟเขียวอ่อน / เล่นได้ ตลาดเปิด"}
+  else if(score>=1){cls="orange";label="🟠 1.00–2.49 = ไฟส้ม / ลองเบาๆ ก่อน"}
+  else{cls="red";label="🔴 < 1.00 = ไฟแดง / อย่าเลย"}
 
   const status=document.getElementById("status");
   status.className="status "+cls;
