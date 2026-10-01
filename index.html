@@ -133,7 +133,7 @@ function scan(){
   const avgCreator7=c30/30*7;
   const momentumRatio=c7/avgCreator7;
   const momentumPct=momentumRatio*100;
-  const score=efficiency*momentumRatio;
+  const score=efficiency*(1+(momentumRatio-1)*0.5);
   const scorePct=score/3*100;
 
   let cls,label;
