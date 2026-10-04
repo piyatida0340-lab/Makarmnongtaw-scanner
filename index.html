@@ -58,6 +58,45 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(18
 .live-score.bad{border-left-color:#e34a4a;background:#321719}
 .live-score b{font-size:21px}
 </style>
+<style>
+.creator-opportunity{
+  margin-top:16px;
+  border:1px solid #46513a;
+  border-radius:12px;
+  overflow:hidden;
+  background:#171b12;
+}
+.creator-opportunity .opportunity-title{
+  padding:18px 20px;
+  font-size:21px;
+  font-weight:800;
+  color:#b7ed3f;
+  border-bottom:1px solid #46513a;
+}
+.creator-opportunity .opportunity-text{
+  padding:18px 20px;
+  color:#d7d9d4;
+  font-size:16px;
+  line-height:1.6;
+}
+.creator-opportunity.orange{
+  background:#24170f;
+  border-color:#9a5a1f;
+}
+.creator-opportunity.orange .opportunity-title{
+  color:#ff9d32;
+  border-bottom-color:#9a5a1f;
+}
+.creator-opportunity.red{
+  background:#241313;
+  border-color:#713030;
+}
+.creator-opportunity.red .opportunity-title{
+  color:#ff7777;
+  border-bottom-color:#713030;
+}
+</style>
+
 </head>
 <body>
 <div class="app">
@@ -128,6 +167,10 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(18
         <div class="mini"><b>Creator momentum — ตลาดเปิดหรืออิ่ม</b><div class="scorebig" id="cmom">—<small>%</small></div><span id="cmomPts"></span></div>
       </div>
       <div class="mini" id="creatorScoreMsg">กรอก Orders และ Creators ให้ครบ</div>
+      <div id="creatorOpportunity" class="creator-opportunity hidden">
+        <div class="opportunity-title" id="creatorOpportunityTitle">โอกาสทอง — ตลาดเพิ่งเปิด</div>
+        <div class="opportunity-text" id="creatorOpportunityText">Creator ขายได้ดี + ตลาดกำลังเปิด</div>
+      </div>
     </div>
   </div>
 
@@ -204,6 +247,38 @@ function liveBox(id, score, text, cls){
   e.style.display="block";
 }
 
+
+function updateCreatorOpportunity(efficiency, creatorScore){
+  const box=$("creatorOpportunity");
+  const title=$("creatorOpportunityTitle");
+  const text=$("creatorOpportunityText");
+  if(!Number.isFinite(efficiency) || !Number.isFinite(creatorScore)){
+    box.className="creator-opportunity hidden";
+    return;
+  }
+
+  // แสดงผลแบบ LEGO: สูตร Creator Score เดิมไม่เปลี่ยน
+  // 3/3 แบ่งเป็น 2 ป้ายตามระดับยอดขาย/Creator
+  if(creatorScore===3 && efficiency>=5){
+    box.className="creator-opportunity";
+    title.textContent="🟢 ทองคำ — เข้าด่วน";
+    text.textContent="Creator ขายได้ดีมาก + ตลาดกำลังเปิด สินค้ามี demand จริง — เข้าด่วน";
+  }else if(creatorScore===3){
+    box.className="creator-opportunity";
+    title.textContent="🟢 โอกาสทอง — ตลาดเพิ่งเปิด";
+    text.textContent="Creator ขายได้พอควร + ตลาดมีจริง แต่ต้องแข่งกันบ้าง";
+  }else if(creatorScore===2){
+    box.className="creator-opportunity orange";
+    title.textContent="🟠 Red Ocean — เข้ายาก";
+    text.textContent="Creator แต่ละคนขายได้น้อยลง — คนเยอะและแข่งขันกันสูง";
+  }else{
+    box.className="creator-opportunity red";
+    title.textContent="🔴 อันตราย — หนีดีกว่า";
+    text.textContent="Creator แต่ละคนขายได้น้อย + ตลาดเริ่มจบ หรือคนเลิกเล่น";
+  }
+  box.classList.remove("hidden");
+}
+
 function updateLive(){
   const commission=n("commission");
   if(commission!==null){
@@ -257,6 +332,7 @@ function updateLive(){
       $("cmomPts").textContent=`Momentum ${ms}/3`;
       $("creatorScoreMsg").className="mini "+(cs===3?"good":cs===2?"warn":"bad");
       $("creatorScoreMsg").textContent=`Creator Score ${cs}/3 — ${cs===3?"ผ่านเกณฑ์ ✓":cs===2?"พอใช้/ต้องดูเพิ่ม":"ต่ำกว่าเกณฑ์"}`;
+      updateCreatorOpportunity(eff,cs);
 
       liveBox("creatorMsg",cs,
         "Creators 7d="+fmt(c7,0)+" | 30d="+fmt(c30,0)+" — ใช้คำนวณ Creator Score (ข้อ 7)",
@@ -268,6 +344,7 @@ function updateLive(){
       $("cmomPts").textContent=`Momentum ${ms}/3`;
       $("creatorScoreMsg").className="mini "+(ms===3?"good":ms===2?"warn":"bad");
       $("creatorScoreMsg").textContent=`Creator Score ${ms}/3`;
+      updateCreatorOpportunity(null,null);
       liveBox("creatorMsg",ms,
         "Creators 7d="+fmt(c7,0)+" | 30d="+fmt(c30,0)+" — ใช้คำนวณ Creator Score (ข้อ 7)",
         ms===3?"good":ms===2?"warn":"bad");
@@ -280,6 +357,7 @@ function updateLive(){
     $("cmomPts").textContent="";
     $("creatorScoreMsg").className="mini";
     $("creatorScoreMsg").textContent="กรอก Orders และ Creators ให้ครบ";
+    updateCreatorOpportunity(null,null);
   }
 
   if(o30!==null && a30!==null && a30>0){
@@ -359,6 +437,7 @@ function calculate(){
   $("cmomPts").textContent=`Momentum ${momScore}/3`;
   $("creatorScoreMsg").className="mini "+(sCreator===3?"good":sCreator===2?"warn":"bad");
   $("creatorScoreMsg").textContent=`Creator Score ${sCreator}/3 — ขายได้จริง + ทิศทางตลาด`;
+  updateCreatorOpportunity(efficiency,sCreator);
 
   $("stockMsg").className="mini "+(sStock===3?"good":sStock===2?"warn":"bad");
   $("stockMsg").textContent=`Stock ${fmt(stock,0)} ชิ้น — พอประมาณ ${fmt(days,0)} วัน — ${sStock}/3`;
@@ -416,7 +495,7 @@ function exportCSV(){
   const csv=[head,...rows].map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
   const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="makarmnongtaw_tracker.csv";a.click();URL.revokeObjectURL(a.href);
 }
-function resetForm(){document.querySelectorAll("#scorecard input").forEach(x=>x.value="");$("final").classList.add("hidden");updateLive();document.querySelectorAll(".mini").forEach(x=>{if(x.id&&["commissionMsg","orderMsg","ctrMsg","atcMsg","creatorMsg","stockMsg"].includes(x.id))x.classList.add("hidden")})}
+function resetForm(){document.querySelectorAll("#scorecard input").forEach(x=>x.value="");$("final").classList.add("hidden");updateCreatorOpportunity(null,null);updateLive();document.querySelectorAll(".mini").forEach(x=>{if(x.id&&["commissionMsg","orderMsg","ctrMsg","atcMsg","creatorMsg","stockMsg"].includes(x.id))x.classList.add("hidden")})}
 
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");["scorecard","tracker","history"].forEach(id=>$(id).classList.add("hidden"));$(t.dataset.tab).classList.remove("hidden");if(t.dataset.tab==="tracker")renderTracker();if(t.dataset.tab==="history")renderHistory()});
 document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-filter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");currentFilter=b.dataset.filter;renderTracker()});
@@ -434,5 +513,51 @@ function bindLiveInputs(){
 }
 updateCount();renderTracker();renderHistory();bindLiveInputs();
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const find = (...names) => {
+    for (const n of names) {
+      const el = document.getElementById(n) || document.querySelector(`[name="${n}"]`);
+      if (el) return el;
+    }
+    return null;
+  };
+
+  const o7 = find('orders7','orders7d','orders_7d','orders7Days');
+  const c7 = find('creators7','creators7d','creators_7d','creators7Days');
+
+  function liveCreatorScore() {
+    if (!o7 || !c7) return;
+    const orders = parseFloat(o7.value);
+    const creators = parseFloat(c7.value);
+    if (!Number.isFinite(orders) || !Number.isFinite(creators) || creators <= 0) return;
+
+    // ใช้สูตรเดิมของระบบ: Efficiency × Momentum
+    const c30 = parseFloat((find('creators30','creators30d','creators_30d','creators30Days') || {}).value);
+    if (!Number.isFinite(c30) || c30 <= 0) return;
+
+    const efficiency = orders / creators;
+    const momentumRatio = creators / ((c30 / 30) * 7);
+    const score = efficiency * momentumRatio;
+
+    // ไม่สร้าง UI ใหม่ถ้าระบบเดิมมีผลลัพธ์อยู่แล้ว
+    const text = Array.from(document.querySelectorAll('body *')).find(el =>
+      el.children.length === 0 && /Creator Score/i.test(el.textContent || '')
+    );
+    if (text) {
+      const box = text.parentElement;
+      if (box && /Creator Score/i.test(box.textContent || '')) {
+        // ปล่อยระบบเดิมเป็นผู้แสดงผล
+      }
+    }
+  }
+
+  [o7,c7].filter(Boolean).forEach(el => {
+    ['input','change','keyup','blur'].forEach(ev => el.addEventListener(ev, liveCreatorScore));
+  });
+});
+</script>
+
 </body>
 </html>
