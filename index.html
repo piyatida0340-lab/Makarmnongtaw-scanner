@@ -79,6 +79,7 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(18
   font-size:16px;
   line-height:1.6;
 }
+.creator-opportunity.yellow{background:#2b2a0b;border-left-color:#d6a400;}
 .creator-opportunity.orange{
   background:#24170f;
   border-color:#9a5a1f;
@@ -257,24 +258,28 @@ function updateCreatorOpportunity(efficiency, creatorScore){
     return;
   }
 
-  // แสดงผลแบบ LEGO: สูตร Creator Score เดิมไม่เปลี่ยน
-  // 3/3 แบ่งเป็น 2 ป้ายตามระดับยอดขาย/Creator
-  if(creatorScore===3 && efficiency>=5){
+  // แสดงผลตามค่า Orders / Creator ที่คำนวณเดิม — ไม่เปลี่ยนสูตร Creator Score
+  // >3.0 = ทองคำ | 2.1–3.0 = โอกาสทอง | 1.6–2.0 = ดาบสองคม | 1.0–1.5 = Red Ocean | 0.0–0.9 = อันตราย
+  if(efficiency > 3.0){
     box.className="creator-opportunity";
     title.textContent="🟢 ทองคำ — เข้าด่วน";
-    text.textContent="Creator ขายได้ดีมาก + ตลาดกำลังเปิด สินค้ามี demand จริง — เข้าด่วน";
-  }else if(creatorScore===3){
+    text.textContent="Creator แต่ละคนขายได้ดีมาก — สินค้ามี demand จริง";
+  }else if(efficiency >= 2.1){
     box.className="creator-opportunity";
-    title.textContent="🟢 โอกาสทอง — ตลาดเพิ่งเปิด";
-    text.textContent="Creator ขายได้พอควร + ตลาดมีจริง แต่ต้องแข่งกันบ้าง";
-  }else if(creatorScore===2){
+    title.textContent="🟢 โอกาสทอง — ตลาดเปิด";
+    text.textContent="Creator ขายได้ดี — ตลาดมีโอกาส น่าเข้าเล่น";
+  }else if(efficiency >= 1.6){
+    box.className="creator-opportunity yellow";
+    title.textContent="🟡 ดาบสองคม — ร้อนแต่หั่นกันเอง";
+    text.textContent="ตลาดมีเงิน แต่การแข่งขันเริ่มสูง ต้องเลือกสินค้าและมุมขายให้ดี";
+  }else if(efficiency >= 1.0){
     box.className="creator-opportunity orange";
     title.textContent="🟠 Red Ocean — เข้ายาก";
     text.textContent="Creator แต่ละคนขายได้น้อยลง — คนเยอะและแข่งขันกันสูง";
   }else{
     box.className="creator-opportunity red";
     title.textContent="🔴 อันตราย — หนีดีกว่า";
-    text.textContent="Creator แต่ละคนขายได้น้อย + ตลาดเริ่มจบ หรือคนเลิกเล่น";
+    text.textContent="Creator แต่ละคนขายได้น้อยมาก — ยังไม่แนะนำให้เข้า";
   }
   box.classList.remove("hidden");
 }
