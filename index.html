@@ -223,6 +223,7 @@ let currentFilter="ALL";
 
 function n(id){const v=parseFloat($(id).value);return Number.isFinite(v)?v:null}
 function fmt(v,d=1){return Number.isFinite(v)?v.toLocaleString("th-TH",{maximumFractionDigits:d}):"—"}
+function fmtCreatorRatio(v){return Number.isFinite(v)?(Math.round((v+Number.EPSILON)*10)/10).toLocaleString("th-TH",{minimumFractionDigits:1,maximumFractionDigits:1}):"—"}
 function score3(v,a,b){return v<a?1:v<b?2:3}
 function ctrScore(v){return v<4?1:v<=7?2:3}
 function commissionScore(v){return v<5?0:v<10?1:v<15?2:3}
@@ -339,7 +340,7 @@ function updateLive(){
 
     // แสดงค่าของ Creator Score แบบ Live ทันทีที่กรอกตัวเลข
     if(es!==null){
-      $("eff").innerHTML=`${fmt(eff,1)}<small>/คน</small>`;
+      $("eff").innerHTML=`${fmtCreatorRatio(eff)}<small>/คน</small>`;
       $("cmom").innerHTML=`${fmt(mom,0)}<small>%</small>`;
       $("effPts").textContent=`Efficiency ${es}/3`;
       $("cmomPts").textContent=`Momentum ${ms}/3`;
@@ -447,7 +448,7 @@ function calculate(){
   $("cvr").innerHTML=`${fmt(cvr,1)}<small>%</small>`;
   $("cvrMsg").textContent=`CVR ${fmt(cvr,1)}% — ${sCvr}/3`;
 
-  $("eff").innerHTML=`${fmt(efficiency,1)}<small>/คน</small>`;
+  $("eff").innerHTML=`${fmtCreatorRatio(efficiency)}<small>/คน</small>`;
   $("cmom").innerHTML=`${fmt(creatorMom,0)}<small>%</small>`;
   $("effPts").textContent=`Efficiency ${effScore}/3`;
   $("cmomPts").textContent=`Momentum ${momScore}/3`;
@@ -472,7 +473,7 @@ function calculate(){
     ["CTR",fmt(ctr,1)+"%",sCtr],
     ["ATC momentum",fmt(atcMom,0)+"%",sAtc],
     ["CVR (auto)",fmt(cvr,1)+"%",sCvr],
-    ["Creator Score",fmt(efficiency,1)+"/คน · "+fmt(creatorMom,0)+"%",sCreator],
+    ["Creator Score",fmtCreatorRatio(efficiency)+"/คน · "+fmt(creatorMom,0)+"%",sCreator],
     ["Stock",fmt(stock,0),sStock]
   ];
   $("breakdown").innerHTML=rows.map(r=>`<div class="row"><b>${r[0]}</b><span>${r[1]} <strong class="pts p${r[2]}">${r[2]}/3</strong></span></div>`).join("");
