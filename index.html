@@ -183,7 +183,7 @@ input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(18
   <button class="btn" onclick="calculate()">คำนวณ Makarmnongtaw Score</button>
   <button class="btn secondary" onclick="resetForm()">ล้างข้อมูล</button>
 
-  <section id="final" class="resultHero hidden">
+  <section id="final" class="resultHero hidden" aria-hidden="true">
     <div class="productName" id="rProduct">สินค้า</div>
     <div class="grade" id="rGrade">A</div>
     <div class="percent" id="rPercent">0%</div>
@@ -224,8 +224,14 @@ let currentFilter="ALL";
 function n(id){const v=parseFloat($(id).value);return Number.isFinite(v)?v:null}
 function fmt(v,d=1){return Number.isFinite(v)?v.toLocaleString("th-TH",{maximumFractionDigits:d}):"—"}
 function score3(v,a,b){return v<a?1:v<b?2:3}
+function ctrScore(v){return v<4?1:v<=7?2:3}
+function commissionScore(v){return v<5?0:v<10?1:v<15?2:3}
+function ordersMomentumScore(v){return v<100?1:v<120?2:3}
+function atcMomentumScore(v){return v<70?1:v<100?2:3}
+function creatorMomentumScore(v){return v<70?1:v<100?2:3}
+function creatorRatioScore(v){return v<1?1:v<5?2:3}
 function momentum(v){return v<100?1:v<110?2:3}
-function grade(total){return total>=18?"A":total>=15?"B":"C"}
+function grade(total){return total>=18?"A":total>=17?"B":"C"}
 
 function showMsg(id,text,cls="mini"){const e=$(id);e.innerHTML=text;e.className=cls}
 function hide(id){$(id).classList.add("hidden")}
@@ -258,16 +264,18 @@ function updateCreatorOpportunity(efficiency, creatorScore){
     return;
   }
 
-  // แสดงผลตามค่า Orders / Creator ที่คำนวณเดิม — ไม่เปลี่ยนสูตร Creator Score
-  // >3.0 = ทองคำ | 2.1–3.0 = โอกาสทอง | 1.6–2.0 = ดาบสองคม | 1.0–1.5 = Red Ocean | 0.0–0.9 = อันตราย
-  if(efficiency > 3.0){
+  // กติกา "ทองคำ" ของ Makarmnongtaw:
+  // 4.0/คนขึ้นไป = ทองคำ — เข้าด่วน
+  // 2.1–3.99/คน = โอกาสทอง — ตลาดเปิด
+  // หมายเหตุ: Creator Score 3/3 ไม่ได้แปลว่าเป็น "ทองคำ" โดยอัตโนมัติ
+  if(efficiency >= 4.0){
     box.className="creator-opportunity";
     title.textContent="🟢 ทองคำ — เข้าด่วน";
-    text.textContent="Creator แต่ละคนขายได้ดีมาก — สินค้ามี demand จริง";
+    text.textContent="Orders/Creator ≥ 4.0 — Creator แต่ละคนขายได้ดีมาก สินค้ามี demand จริง";
   }else if(efficiency >= 2.1){
     box.className="creator-opportunity";
     title.textContent="🟢 โอกาสทอง — ตลาดเปิด";
-    text.textContent="Creator ขายได้ดี — ตลาดมีโอกาส น่าเข้าเล่น";
+    text.textContent="Orders/Creator 2.1–3.99 — Creator ขายได้ดี ตลาดมีโอกาส น่าเข้าเล่น";
   }else if(efficiency >= 1.6){
     box.className="creator-opportunity yellow";
     title.textContent="🟡 ดาบสองคม — ร้อนแต่หั่นกันเอง";
@@ -287,7 +295,7 @@ function updateCreatorOpportunity(efficiency, creatorScore){
 function updateLive(){
   const commission=n("commission");
   if(commission!==null){
-    const s=score3(commission,10,15);
+    const s=commissionScore(commission);
     liveBox("commissionMsg",s,
       commission>=15?"≥15% ดีมาก ผ่านเกณฑ์ ✓":
       commission>=10?"10–14.9% ดี ผ่านเกณฑ์ ✓":"<10% คอมต่ำ ควรระวัง",
@@ -296,7 +304,7 @@ function updateLive(){
 
   const o7=n("o7"),o30=n("o30");
   if(o7!==null && o30!==null && o30>0){
-    const m=o7/(o30/30*7)*100, s=momentum(m);
+    const m=o7/(o30/30*7)*100, s=ordersMomentumScore(m);
     liveBox("orderMsg",s,
       "Orders 7D "+fmt(o7,0)+" | 30D "+fmt(o30,0)+" — Momentum "+fmt(m,0)+"% "+
       (m>=110?"ตลาดเร่งตัว ✓":m>=100?"ทรงตัว/ผ่านเกณฑ์":"ตลาดชะลอ"),
@@ -305,16 +313,16 @@ function updateLive(){
 
   const ctr=n("ctr");
   if(ctr!==null){
-    const s=score3(ctr,4,6);
+    const s=ctrScore(ctr);
     liveBox("ctrMsg",s,
-      ctr>=6?"≥6% ดีมาก ผ่านเกณฑ์ ✓":
-      ctr>=4?"4–5.9% ผ่านเกณฑ์ ✓":"<4% Angle ต้องปรับ",
+      ctr>7?">7% ดีมาก ผ่านเกณฑ์ ✓":
+      ctr>=4?"4–7% พอใช้":"<4% Angle ต้องปรับ",
       s===3?"good":s===2?"warn":"bad");
   }
 
   const a7=n("atc7"),a30=n("atc30");
   if(a7!==null && a30!==null && a30>0){
-    const m=a7/(a30/30*7)*100, s=momentum(m);
+    const m=a7/(a30/30*7)*100, s=atcMomentumScore(m);
     liveBox("atcMsg",s,
       "ATC 7D "+fmt(a7,0)+" | 30D "+fmt(a30,0)+" — Momentum "+fmt(m,0)+"% "+
       (m>=110?"Intent แข็งแรง ✓":m>=100?"ทรงตัว/ผ่านเกณฑ์":"Intent ชะลอ"),
@@ -325,8 +333,8 @@ function updateLive(){
   if(c7!==null && c30!==null && c30>0){
     const eff=o30!==null&&o30>0 ? o30/c30 : null;
     const mom=c7/(c30/30*7)*100;
-    const es=eff===null?null:score3(eff,1,3);
-    const ms=momentum(mom);
+    const es=eff===null?null:creatorRatioScore(eff);
+    const ms=creatorMomentumScore(mom);
     const cs=es===null?ms:Math.ceil((es+ms)/2);
 
     // แสดงค่าของ Creator Score แบบ Live ทันทีที่กรอกตัวเลข
@@ -384,6 +392,9 @@ function updateLive(){
       "Stock "+fmt(stock,0)+" ชิ้น — พอประมาณ "+fmt(days,0)+" วัน — "+(s===3?"พอใช้ ✓":s===2?"ควรระวัง":"เสี่ยงหมดเร็ว"),
       s===3?"good":s===2?"warn":"bad");
   }
+
+
+
 }
 
 function calculate(){
@@ -400,13 +411,13 @@ function calculate(){
   const cvr=o30/atc30*100;
   const days=stock/(o30/30);
 
-  const sCommission=score3(commission,10,15);
-  const sOrder=momentum(orderMom);
-  const sCtr=score3(ctr,4,6);
-  const sAtc=momentum(atcMom);
+  const sCommission=commissionScore(commission);
+  const sOrder=ordersMomentumScore(orderMom);
+  const sCtr=ctrScore(ctr);
+  const sAtc=atcMomentumScore(atcMom);
   const sCvr=score3(cvr,15,25);
-  const effScore=score3(efficiency,1,3);
-  const momScore=momentum(creatorMom);
+  const effScore=creatorRatioScore(efficiency);
+  const momScore=creatorMomentumScore(creatorMom);
   const sCreator=Math.ceil((effScore+momScore)/2);
   const sStock=score3(days,14,30);
   const total=sCommission+sOrder+sCtr+sAtc+sCvr+sCreator+sStock;
@@ -466,6 +477,7 @@ function calculate(){
   ];
   $("breakdown").innerHTML=rows.map(r=>`<div class="row"><b>${r[0]}</b><span>${r[1]} <strong class="pts p${r[2]}">${r[2]}/3</strong></span></div>`).join("");
   $("final").classList.remove("hidden");
+  $("final").setAttribute("aria-hidden","false");
 
   lastResult={product,commission,o7,o30,ctr,atc7,atc30,c7,c30,stock,orderMom,atcMom,creatorMom,efficiency,cvr,days,sCommission,sOrder,sCtr,sAtc,sCvr,sCreator,sStock,total,pct,grade:g,date:new Date().toISOString()};
   window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"});
@@ -500,7 +512,7 @@ function exportCSV(){
   const csv=[head,...rows].map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(",")).join("\n");
   const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="makarmnongtaw_tracker.csv";a.click();URL.revokeObjectURL(a.href);
 }
-function resetForm(){document.querySelectorAll("#scorecard input").forEach(x=>x.value="");$("final").classList.add("hidden");updateCreatorOpportunity(null,null);updateLive();document.querySelectorAll(".mini").forEach(x=>{if(x.id&&["commissionMsg","orderMsg","ctrMsg","atcMsg","creatorMsg","stockMsg"].includes(x.id))x.classList.add("hidden")})}
+function resetForm(){document.querySelectorAll("#scorecard input").forEach(x=>x.value="");$("final").classList.add("hidden");$("final").setAttribute("aria-hidden","true"); $("final").setAttribute("aria-hidden","true");updateCreatorOpportunity(null,null);updateLive();document.querySelectorAll(".mini").forEach(x=>{if(x.id&&["commissionMsg","orderMsg","ctrMsg","atcMsg","creatorMsg","stockMsg"].includes(x.id))x.classList.add("hidden")})}
 
 document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");["scorecard","tracker","history"].forEach(id=>$(id).classList.add("hidden"));$(t.dataset.tab).classList.remove("hidden");if(t.dataset.tab==="tracker")renderTracker();if(t.dataset.tab==="history")renderHistory()});
 document.querySelectorAll("[data-filter]").forEach(b=>b.onclick=()=>{document.querySelectorAll("[data-filter]").forEach(x=>x.classList.remove("active"));b.classList.add("active");currentFilter=b.dataset.filter;renderTracker()});
@@ -519,50 +531,7 @@ function bindLiveInputs(){
 updateCount();renderTracker();renderHistory();bindLiveInputs();
 </script>
 
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const find = (...names) => {
-    for (const n of names) {
-      const el = document.getElementById(n) || document.querySelector(`[name="${n}"]`);
-      if (el) return el;
-    }
-    return null;
-  };
 
-  const o7 = find('orders7','orders7d','orders_7d','orders7Days');
-  const c7 = find('creators7','creators7d','creators_7d','creators7Days');
-
-  function liveCreatorScore() {
-    if (!o7 || !c7) return;
-    const orders = parseFloat(o7.value);
-    const creators = parseFloat(c7.value);
-    if (!Number.isFinite(orders) || !Number.isFinite(creators) || creators <= 0) return;
-
-    // ใช้สูตรเดิมของระบบ: Efficiency × Momentum
-    const c30 = parseFloat((find('creators30','creators30d','creators_30d','creators30Days') || {}).value);
-    if (!Number.isFinite(c30) || c30 <= 0) return;
-
-    const efficiency = orders / creators;
-    const momentumRatio = creators / ((c30 / 30) * 7);
-    const score = efficiency * momentumRatio;
-
-    // ไม่สร้าง UI ใหม่ถ้าระบบเดิมมีผลลัพธ์อยู่แล้ว
-    const text = Array.from(document.querySelectorAll('body *')).find(el =>
-      el.children.length === 0 && /Creator Score/i.test(el.textContent || '')
-    );
-    if (text) {
-      const box = text.parentElement;
-      if (box && /Creator Score/i.test(box.textContent || '')) {
-        // ปล่อยระบบเดิมเป็นผู้แสดงผล
-      }
-    }
-  }
-
-  [o7,c7].filter(Boolean).forEach(el => {
-    ['input','change','keyup','blur'].forEach(ev => el.addEventListener(ev, liveCreatorScore));
-  });
-});
-</script>
 
 </body>
 </html>
