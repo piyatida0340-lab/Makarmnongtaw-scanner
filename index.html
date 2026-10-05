@@ -230,9 +230,9 @@ function commissionScore(v){return v<5?0:v<10?1:v<15?2:3}
 function ordersMomentumScore(v){return v<100?1:v<120?2:3}
 function atcMomentumScore(v){return v<70?1:v<100?2:3}
 function creatorMomentumScore(v){return v<70?1:v<100?2:3}
-function creatorRatioScore(v){return v<1?1:v<5?2:3}
+function creatorRatioScore(v){return v<2?1:v<4?2:3}
 function momentum(v){return v<100?1:v<110?2:3}
-function grade(total){return total>=18?"A":total>=17?"B":"C"}
+function grade(total){return total>=18?"A":total>=16?"B":"C"}
 
 function showMsg(id,text,cls="mini"){const e=$(id);e.innerHTML=text;e.className=cls}
 function hide(id){$(id).classList.add("hidden")}
@@ -281,7 +281,7 @@ function updateCreatorOpportunity(efficiency, creatorScore){
     box.className="creator-opportunity yellow";
     title.textContent="🟡 ดาบสองคม — ร้อนแต่หั่นกันเอง";
     text.textContent="ตลาดมีเงิน แต่การแข่งขันเริ่มสูง ต้องเลือกสินค้าและมุมขายให้ดี";
-  }else if(efficiency >= 1.0){
+  }else if(efficiency >= 1.5){
     box.className="creator-opportunity orange";
     title.textContent="🟠 Red Ocean — เข้ายาก";
     text.textContent="Creator แต่ละคนขายได้น้อยลง — คนเยอะและแข่งขันกันสูง";
